@@ -4,6 +4,8 @@
   "title": "Cloudflare AI",
   "description": "Interact with Cloudflare AI directly in your raycast window",
   "icon": "extension-icon.png",
+  "author": "dharminnagar",
+  "contributors": ["code-parth"],
   "platforms": [
     "macOS",
     "Windows"
