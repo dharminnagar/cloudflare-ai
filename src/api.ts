@@ -28,7 +28,7 @@ export async function fetchCloudflareModels(): Promise<ModelDropdownItem[]> {
     }
 
     // Filter for text generation models and format for dropdown
-    return data.result
+    const models = data.result
       .filter(
         (model) =>
           model.task?.name === "Text Generation" || model.name.includes("llama") || model.name.includes("mistral"),
@@ -37,8 +37,33 @@ export async function fetchCloudflareModels(): Promise<ModelDropdownItem[]> {
         title: formatModelName(model.name),
         value: model.name,
       }));
+
+    // Cache models to LocalStorage for faster loading
+    try {
+      const { LocalStorage } = await import("@raycast/api");
+      await LocalStorage.setItem("cached-models", JSON.stringify(models));
+      await LocalStorage.setItem("cached-models-timestamp", Date.now().toString());
+    } catch (cacheError) {
+      console.error("Failed to cache models:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return models;
   } catch (error) {
     console.error("Error fetching models:", error);
+
+    // Try to load from cache if API fails
+    try {
+      const { LocalStorage } = await import("@raycast/api");
+      const cached = await LocalStorage.getItem<string>("cached-models");
+      if (cached) {
+        console.log("Loading models from cache due to API failure");
+        return JSON.parse(cached);
+      }
+    } catch (cacheError) {
+      console.error("Failed to load cached models:", cacheError);
+    }
+
     throw error;
   }
 }

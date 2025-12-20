@@ -102,41 +102,14 @@ export function ConversationView({ conversation: initialConversation }: Conversa
       searchText={searchText}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Ask a follow-up question..."
+      navigationTitle={`${formatModelName(conversation.model)} • ${conversation.chats.length} exchanges`}
     >
       {conversation.chats.map((chat, idx) => (
         <List.Item
           key={chat.id}
           title={`Q${idx + 1}: ${chat.question}`}
           icon={{ source: Icon.Message, tintColor: Color.Blue }}
-          accessories={[
-            {
-              text: new Date(chat.created_at).toLocaleString(),
-            },
-          ]}
-          detail={
-            <List.Item.Detail
-              markdown={`## Question\n\n${chat.question}\n\n## Answer\n\n${chat.answer}`}
-              metadata={
-                <List.Item.Detail.Metadata>
-                  <List.Item.Detail.Metadata.Label title="Model" text={formatModelName(conversation.model)} />
-                  <List.Item.Detail.Metadata.Label title="Created" text={new Date(chat.created_at).toLocaleString()} />
-                  {idx === conversation.chats.length - 1 && (
-                    <>
-                      <List.Item.Detail.Metadata.Separator />
-                      <List.Item.Detail.Metadata.Label
-                        title="Total Exchanges"
-                        text={conversation.chats.length.toString()}
-                      />
-                      <List.Item.Detail.Metadata.Label
-                        title="Last Updated"
-                        text={new Date(conversation.updated_at).toLocaleString()}
-                      />
-                    </>
-                  )}
-                </List.Item.Detail.Metadata>
-              }
-            />
-          }
+          detail={<List.Item.Detail markdown={`## Question\n\n${chat.question}\n\n## Answer\n\n${chat.answer}`} />}
           actions={
             <ActionPanel>
               {searchText && <Action title="Ask Follow-Up" icon={Icon.Message} onAction={handleFollowUp} />}
