@@ -4,7 +4,6 @@
   "title": "Cloudflare AI",
   "description": "Interact with Cloudflare AI directly in your raycast window",
   "icon": "extension-icon.png",
-  "author": "dharmin_nagar",
   "platforms": [
     "macOS",
     "Windows"
@@ -41,23 +40,23 @@
       "required": false,
       "title": "Default Model",
       "description": "Default AI model to use",
-      "default": "@cf/meta/llama-3.1-8b-instruct",
+      "default": "@cf/meta/llama-3-8b-instruct",
       "data": [
         {
-          "title": "Llama 3.1 8B Instruct",
-          "value": "@cf/meta/llama-3.1-8b-instruct"
+          "title": "Llama 3 8B Instruct",
+          "value": "@cf/meta/llama-3-8b-instruct"
         },
         {
-          "title": "Llama 3.1 70B Instruct",
-          "value": "@cf/meta/llama-3.1-70b-instruct"
+          "title": "Llama 3.1 8B Instruct FP8",
+          "value": "@cf/meta/llama-3.1-8b-instruct-fp8"
         },
         {
           "title": "Mistral 7B Instruct",
           "value": "@cf/mistral/mistral-7b-instruct-v0.1"
         },
         {
-          "title": "Qwen 1.5 14B Chat",
-          "value": "@cf/qwen/qwen1.5-14b-chat-awq"
+          "title": "GPT OSS 120B",
+          "value": "@cf/openai/gpt-oss-120b"
         }
       ]
     }
