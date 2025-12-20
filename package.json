@@ -13,9 +13,53 @@
   "commands": [
     {
       "name": "query-clouflare-ai",
-      "title": "Query Clouflare AI",
-      "description": "",
-      "mode": "no-view"
+      "title": "Query Cloudflare AI",
+      "description": "Ask questions to Cloudflare AI models",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "accountId",
+      "type": "textfield",
+      "required": true,
+      "title": "Account ID",
+      "description": "Your Cloudflare Account ID",
+      "placeholder": "Enter your Cloudflare Account ID"
+    },
+    {
+      "name": "apiToken",
+      "type": "password",
+      "required": true,
+      "title": "API Token",
+      "description": "Your Cloudflare API Token with Workers AI permissions",
+      "placeholder": "Enter your API Token"
+    },
+    {
+      "name": "defaultModel",
+      "type": "dropdown",
+      "required": false,
+      "title": "Default Model",
+      "description": "Default AI model to use",
+      "default": "@cf/meta/llama-3.1-8b-instruct",
+      "data": [
+        {
+          "title": "Llama 3.1 8B Instruct",
+          "value": "@cf/meta/llama-3.1-8b-instruct"
+        },
+        {
+          "title": "Llama 3.1 70B Instruct",
+          "value": "@cf/meta/llama-3.1-70b-instruct"
+        },
+        {
+          "title": "Mistral 7B Instruct",
+          "value": "@cf/mistral/mistral-7b-instruct-v0.1"
+        },
+        {
+          "title": "Qwen 1.5 14B Chat",
+          "value": "@cf/qwen/qwen1.5-14b-chat-awq"
+        }
+      ]
     }
   ],
   "dependencies": {
