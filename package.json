@@ -5,7 +5,9 @@
   "description": "Interact with Cloudflare AI directly in your raycast window",
   "icon": "extension-icon.png",
   "author": "dharminnagar",
-  "contributors": ["code-parth"],
+  "contributors": [
+    "code-parth"
+  ],
   "platforms": [
     "macOS",
     "Windows"
@@ -16,6 +18,12 @@
       "name": "query-clouflare-ai",
       "title": "Query Cloudflare AI",
       "description": "Ask questions to Cloudflare AI models",
+      "mode": "view"
+    },
+    {
+      "name": "conversations",
+      "title": "View Conversations",
+      "description": "View and manage your Cloudflare AI conversation history",
       "mode": "view"
     }
   ],
@@ -65,7 +73,9 @@
   ],
   "dependencies": {
     "@raycast/api": "^1.104.1",
-    "@raycast/utils": "^1.17.0"
+    "@raycast/utils": "^1.17.0",
+    "@types/uuid": "^10.0.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",

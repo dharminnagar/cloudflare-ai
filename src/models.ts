@@ -1,3 +1,5 @@
+import { Message } from "./types";
+
 export enum ModelType {
   GPT_OSS = "gpt-oss",
   CHAT = "chat",
@@ -49,6 +51,43 @@ export function buildRequestBody(prompt: string, modelType: ModelType): object {
       return {
         prompt: prompt,
       };
+  }
+}
+
+export function buildRequestBodyWithHistory(messages: Message[], modelType: ModelType): object {
+  switch (modelType) {
+    case ModelType.GPT_OSS:
+      // GPT_OSS models use 'input' field with full message array
+      return {
+        input: messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      };
+
+    case ModelType.CHAT:
+      // Chat models (Llama, Mistral, etc.) use 'messages' field with full array
+      return {
+        messages: messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      };
+
+    case ModelType.TEXT_GENERATION: {
+      // TEXT_GENERATION models don't natively support conversation context
+      // Concatenate conversation history as formatted text
+      const conversationText = messages
+        .map((msg) => {
+          const prefix = msg.role === "user" ? "Q: " : "A: ";
+          return prefix + msg.content;
+        })
+        .join("\n\n");
+
+      return {
+        prompt: conversationText,
+      };
+    }
   }
 }
 

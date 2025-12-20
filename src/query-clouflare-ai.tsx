@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { ActionPanel, Action, List, useNavigation, showToast, Toast, getPreferenceValues } from "@raycast/api";
-import { Preferences, ModelDropdownItem } from "./types";
+import { v4 as uuidv4 } from "uuid";
+import { Preferences, ModelDropdownItem, Conversation, Chat } from "./types";
 import { fetchCloudflareModels, queryCloudflareAI } from "./api";
-import { ResponseView } from "./components/ResponseView";
+import { ConversationView } from "./components/ConversationView";
+import { useConversations } from "./hooks/useConversations";
 
 export default function Command() {
   const preferences = getPreferenceValues<Preferences>();
   const { push } = useNavigation();
+  const conversations = useConversations();
   const [isLoading, setIsLoading] = useState(false);
   const [models, setModels] = useState<ModelDropdownItem[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(true);
@@ -66,7 +69,31 @@ export default function Command() {
       toast.style = Toast.Style.Success;
       toast.title = "Response received";
 
-      push(<ResponseView prompt={searchText} response={response} model={selectedModel} />);
+      // Create conversation object with first chat
+      const chat: Chat = {
+        id: uuidv4(),
+        question: searchText,
+        answer: response,
+        created_at: new Date().toISOString(),
+      };
+
+      const conversation: Conversation = {
+        id: uuidv4(),
+        model: selectedModel,
+        chats: [chat],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        pinned: false,
+      };
+
+      // Save conversation to storage
+      await conversations.add(conversation);
+
+      // Navigate to conversation view
+      push(<ConversationView conversation={conversation} />);
+
+      // Clear search text for next query
+      setSearchText("");
     } catch (error) {
       toast.style = Toast.Style.Failure;
       toast.title = "Failed to query AI";

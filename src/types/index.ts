@@ -41,3 +41,34 @@ export interface ModelDropdownItem {
   title: string;
   value: string;
 }
+
+// Conversation types
+export interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface Chat {
+  id: string;
+  question: string;
+  answer: string;
+  created_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  model: string;
+  chats: Chat[];
+  created_at: string;
+  updated_at: string;
+  pinned: boolean;
+}
+
+export interface ConversationsHook {
+  data: Conversation[];
+  isLoading: boolean;
+  add: (conversation: Conversation) => Promise<void>;
+  update: (conversation: Conversation) => Promise<void>;
+  remove: (conversation: Conversation) => Promise<void>;
+  clear: () => Promise<void>;
+}
