@@ -82,7 +82,7 @@ npm run dev
 
 - `⌘ C` - Copy answer
 - `⌘ ⇧ C` - Copy question & answer
-- `⌘ P` - Pin/unpin conversation
+- `⌘ ⇧ P` - Pin/unpin conversation
 - `⌘ D` - Delete conversation
 
 ## Development
