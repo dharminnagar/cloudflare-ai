@@ -129,7 +129,7 @@ export function ConversationView({ conversation: initialConversation }: Conversa
                     title={conversation.pinned ? "Unpin Conversation" : "Pin Conversation"}
                     icon={conversation.pinned ? Icon.PinDisabled : Icon.Pin}
                     onAction={handlePinToggle}
-                    shortcut={{ modifiers: ["cmd"], key: "p" }}
+                    shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
                   />
                   <Action
                     title="Delete Conversation"
