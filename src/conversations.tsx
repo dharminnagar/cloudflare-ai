@@ -7,7 +7,7 @@ import { formatModelName } from "./models";
 export default function Conversations() {
   const conversations = useConversations();
   const { push } = useNavigation();
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState<string>("");
 
   // Sort conversations: pinned first, then by updated_at
   const pinnedConversations = conversations.data
@@ -102,7 +102,7 @@ export default function Conversations() {
               icon={{ source: Icon.Pin, tintColor: Color.Yellow }}
               accessories={[
                 { tag: formatModelName(conversation.model) },
-                { text: `${conversation.chats.length} exchanges` },
+                { text: conversation.chats.length === 1 ? "1 exchange" : `${conversation.chats.length} exchanges` },
                 { date: new Date(conversation.updated_at) },
               ]}
               actions={
@@ -116,7 +116,7 @@ export default function Conversations() {
                     title="Unpin Conversation"
                     icon={Icon.PinDisabled}
                     onAction={() => handlePinToggle(conversation.id)}
-                    shortcut={{ modifiers: ["cmd"], key: "p" }}
+                    shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
                   />
                   <Action.CopyToClipboard
                     title="Copy Last Answer"
@@ -160,7 +160,7 @@ export default function Conversations() {
                   title="Pin Conversation"
                   icon={Icon.Pin}
                   onAction={() => handlePinToggle(conversation.id)}
-                  shortcut={{ modifiers: ["cmd"], key: "p" }}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
                 />
                 <Action.CopyToClipboard
                   title="Copy Last Answer"
