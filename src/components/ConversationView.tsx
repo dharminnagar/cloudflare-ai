@@ -102,9 +102,12 @@ export function ConversationView({ conversation: initialConversation }: Conversa
       searchText={searchText}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Ask a follow-up question..."
-      navigationTitle={`${formatModelName(conversation.model)} • ${conversation.chats.length} exchanges`}
     >
-      {conversation.chats.map((chat, idx) => (
+      <List.Section
+        title={formatModelName(conversation.model)}
+        subtitle={`${conversation.chats.length} ${conversation.chats.length === 1 ? "exchange" : "exchanges"}`}
+      >
+        {conversation.chats.map((chat, idx) => (
         <List.Item
           key={chat.id}
           title={`Q${idx + 1}: ${chat.question}`}
@@ -144,6 +147,7 @@ export function ConversationView({ conversation: initialConversation }: Conversa
           }
         />
       ))}
+      </List.Section>
     </List>
   );
 }
