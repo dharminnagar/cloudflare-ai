@@ -3,6 +3,77 @@ import { AIResponse, ModelsResponse, ModelDropdownItem, Message } from "./types"
 import { detectModelType, buildRequestBody, buildRequestBodyWithHistory, formatModelName } from "./models";
 import { parseAIResponse } from "./parsers";
 
+interface CloudflareErrorPayload {
+  errors?: Array<{ message?: string }>;
+}
+
+function parseCloudflareErrorMessage(errorText: string): string {
+  try {
+    const parsed = JSON.parse(errorText) as CloudflareErrorPayload;
+    const message = parsed.errors?.[0]?.message;
+    if (message && message.trim()) {
+      return message;
+    }
+  } catch {
+    // Keep original text if the response body is not JSON.
+  }
+
+  return errorText;
+}
+
+function normalizeErrorMessage(message: string): string {
+  const cleaned = message
+    .replace(/^AiError:\s*/i, "")
+    .replace(/^Ai:\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) {
+    return "Unknown error";
+  }
+
+  return cleaned.length > 180 ? `${cleaned.slice(0, 177)}...` : cleaned;
+}
+
+function formatModelsFetchError(status: number, errorText: string): string {
+  const rawMessage = parseCloudflareErrorMessage(errorText);
+  const message = normalizeErrorMessage(rawMessage);
+
+  switch (status) {
+    case 401:
+      return "Unauthorized. Check your API token and Workers AI permissions.";
+    case 403:
+      return "Access denied. Your account or token cannot list Workers AI models.";
+    default:
+      return `Failed to load models (${status}): ${message}`;
+  }
+}
+
+function formatRunError(status: number, model: string, requestShape: string, errorText: string): string {
+  const rawMessage = parseCloudflareErrorMessage(errorText);
+  const message = normalizeErrorMessage(rawMessage);
+
+  switch (status) {
+    case 400:
+      return `Invalid request for ${formatModelName(model)} (payload: ${requestShape}). ${message}`;
+    case 401:
+      return "Unauthorized. Check your API token and Workers AI permissions.";
+    case 403: {
+      const lower = message.toLowerCase();
+      if (lower.includes("not allowed") || lower.includes("not enabled") || lower.includes("not authorized")) {
+        return `Your account is not allowed to use ${formatModelName(model)} yet. Try another model or request access in Cloudflare.`;
+      }
+      return `Access denied for ${formatModelName(model)}. Verify account access and token scope.`;
+    }
+    case 404:
+      return `${formatModelName(model)} is unavailable for this account or region.`;
+    case 429:
+      return "Rate limit reached. Please retry in a moment.";
+    default:
+      return `Cloudflare AI error (${status}) for ${formatModelName(model)}: ${message}`;
+  }
+}
+
 function isTextCapableTask(taskName?: string): boolean {
   const normalizedTask = taskName?.toLowerCase() ?? "";
   return (
@@ -48,7 +119,8 @@ export async function fetchCloudflareModels(): Promise<ModelDropdownItem[]> {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(formatModelsFetchError(response.status, errorText));
     }
 
     const data = (await response.json()) as ModelsResponse;
@@ -117,9 +189,7 @@ export async function queryCloudflareAI(prompt: string, model: string): Promise<
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `API Error (${response.status}) for model "${model}" with payload [${requestShape}]: ${errorText}`,
-      );
+      throw new Error(formatRunError(response.status, model, requestShape, errorText));
     }
 
     const data = (await response.json()) as AIResponse;
@@ -131,9 +201,9 @@ export async function queryCloudflareAI(prompt: string, model: string): Promise<
     return parseAIResponse(data);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to query Cloudflare AI: ${error.message}`);
+      throw new Error(error.message);
     }
-    throw new Error("Failed to query Cloudflare AI: Unknown error");
+    throw new Error("Unknown error");
   }
 }
 
@@ -159,9 +229,7 @@ export async function queryCloudflareAIWithHistory(messages: Message[], model: s
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `API Error (${response.status}) for model "${model}" with payload [${requestShape}]: ${errorText}`,
-      );
+      throw new Error(formatRunError(response.status, model, requestShape, errorText));
     }
 
     const data = (await response.json()) as AIResponse;
@@ -173,8 +241,8 @@ export async function queryCloudflareAIWithHistory(messages: Message[], model: s
     return parseAIResponse(data);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to query Cloudflare AI: ${error.message}`);
+      throw new Error(error.message);
     }
-    throw new Error("Failed to query Cloudflare AI: Unknown error");
+    throw new Error("Unknown error");
   }
 }
