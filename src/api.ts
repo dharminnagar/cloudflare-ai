@@ -3,6 +3,36 @@ import { AIResponse, ModelsResponse, ModelDropdownItem, Message } from "./types"
 import { detectModelType, buildRequestBody, buildRequestBodyWithHistory, formatModelName } from "./models";
 import { parseAIResponse } from "./parsers";
 
+function isTextCapableTask(taskName?: string): boolean {
+  const normalizedTask = taskName?.toLowerCase() ?? "";
+  return (
+    normalizedTask.includes("text generation") ||
+    normalizedTask.includes("chat completion") ||
+    normalizedTask.includes("text-generation") ||
+    normalizedTask.includes("chat")
+  );
+}
+
+function isKnownTextModelName(modelName: string): boolean {
+  const normalizedName = modelName.toLowerCase();
+  const families = [
+    "llama",
+    "mistral",
+    "granite",
+    "qwen",
+    "gemma",
+    "phi",
+    "gpt-oss",
+    "kimi",
+    "glm",
+    "internlm",
+    "baichuan",
+    "deepseek",
+  ];
+
+  return families.some((family) => normalizedName.includes(family));
+}
+
 export async function fetchCloudflareModels(): Promise<ModelDropdownItem[]> {
   const preferences = getPreferenceValues<Preferences>();
   const { accountId, apiToken } = preferences;
@@ -29,10 +59,7 @@ export async function fetchCloudflareModels(): Promise<ModelDropdownItem[]> {
 
     // Filter for text generation models and format for dropdown
     const models = data.result
-      .filter(
-        (model) =>
-          model.task?.name === "Text Generation" || model.name.includes("llama") || model.name.includes("mistral"),
-      )
+      .filter((model) => isTextCapableTask(model.task?.name) || isKnownTextModelName(model.name))
       .map((model) => ({
         title: formatModelName(model.name),
         value: model.name,
@@ -76,6 +103,7 @@ export async function queryCloudflareAI(prompt: string, model: string): Promise<
 
   const modelType = detectModelType(model);
   const requestBody = buildRequestBody(prompt, modelType);
+  const requestShape = Object.keys(requestBody).join(", ");
 
   try {
     const response = await fetch(url, {
@@ -89,13 +117,15 @@ export async function queryCloudflareAI(prompt: string, model: string): Promise<
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`API Error (${response.status}): ${errorText}`);
+      throw new Error(
+        `API Error (${response.status}) for model "${model}" with payload [${requestShape}]: ${errorText}`,
+      );
     }
 
     const data = (await response.json()) as AIResponse;
 
     if (!data.success) {
-      throw new Error(data.errors?.[0]?.message || "Unknown error occurred");
+      throw new Error(data.errors?.[0]?.message || `Unknown error occurred for model "${model}"`);
     }
 
     return parseAIResponse(data);
@@ -115,6 +145,7 @@ export async function queryCloudflareAIWithHistory(messages: Message[], model: s
 
   const modelType = detectModelType(model);
   const requestBody = buildRequestBodyWithHistory(messages, modelType);
+  const requestShape = Object.keys(requestBody).join(", ");
 
   try {
     const response = await fetch(url, {
@@ -128,13 +159,15 @@ export async function queryCloudflareAIWithHistory(messages: Message[], model: s
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`API Error (${response.status}): ${errorText}`);
+      throw new Error(
+        `API Error (${response.status}) for model "${model}" with payload [${requestShape}]: ${errorText}`,
+      );
     }
 
     const data = (await response.json()) as AIResponse;
 
     if (!data.success) {
-      throw new Error(data.errors?.[0]?.message || "Unknown error occurred");
+      throw new Error(data.errors?.[0]?.message || `Unknown error occurred for model "${model}"`);
     }
 
     return parseAIResponse(data);
